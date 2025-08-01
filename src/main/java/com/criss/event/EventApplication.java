@@ -13,7 +13,7 @@ public class EventApplication {
 		SpringApplication.run(EventApplication.class, args);
 		InputStream jsonStream = EventApplication.class.getClassLoader().getResourceAsStream("static/events.json");
 		List<Event> events = EventLoader.loadEventsFromStream(jsonStream);
-		
+
 		for (Event event : events) {
             System.out.println("Event Name: " + event.getName());
             System.out.println("Description: " + event.getDescription());

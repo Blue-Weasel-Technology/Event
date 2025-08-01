@@ -1,32 +1,16 @@
 package com.criss.event.user;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
+@Data               // Lombok annotation to auto-generate getters, setters, toString(), equals(), hashCode(), and constructors
+@AllArgsConstructor // Lombok annotation to generate a constructor with all fields
+@NoArgsConstructor  // Lombok annotation to generate a no-argument constructor
+@EqualsAndHashCode(callSuper = false)  // Ensure that equals() and hashCode() consider fields from the superclass (User)
 public class User {
     private String name;
     private int age;
 
-    public User() {
-        // Default constructor
-    }
-    public User(String name, int age) {
-        this.name = name;
-        this.age = age;
-    }
-    public User(String name) {
-        this.name = name;
-    }
-
-    // #region Getters and Setters, used to Collapse Block
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public int getAge() {
-        return age;
-    }
-    public void setAge(int age) {
-        this.age = age;
-    }
-    // #endregion
 }
