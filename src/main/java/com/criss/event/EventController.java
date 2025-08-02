@@ -1,4 +1,4 @@
-package com.criss.event.database;
+package com.criss.event;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -6,28 +6,28 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class EmployeeController {
+public class EventController {
     
     // Controller to handle employee repository, acting as a middle-man between HTTP requests and database actions
-    private final EmployeeRepository employeeRepository;
+    private final EventRepository eventRepository;
 
     // Constructor injection: Spring injects the employeeRepository here
-    public EmployeeController(EmployeeRepository employeeRepository) {
-        this.employeeRepository = employeeRepository;
+    public EventController(EventRepository eventRepository) {
+        this.eventRepository = eventRepository;
     }
 
     // GET request to fetch all employees
-    @GetMapping("/employees")
-    public Iterable<Employee> findAllEmployees() {
+    @GetMapping("/events")
+    public Iterable<Event> findAllEvents() {
         // Fetches all employee records from the database using the repository
-        return employeeRepository.findAll();
+        return eventRepository.findAll();
     }
 
     // POST request to add a new employee
-    @PostMapping("/employees")
-    public Employee addOneEmployee(@RequestBody Employee employee) {
+    @PostMapping("/events")
+    public Event addOneEvent(@RequestBody Event event) {
         // Saves the incoming employee object to the database and returns it
-        return this.employeeRepository.save(employee);
+        return this.eventRepository.save(event);
     }
 
 }
