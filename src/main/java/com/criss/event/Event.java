@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-
 @Data               // Lombok annotation to auto-generate getters, setters, toString(), equals(), hashCode(), and constructors
 @AllArgsConstructor // Lombok annotation to generate a constructor with all fields
 @NoArgsConstructor  // Lombok annotation to generate a no-argument constructor
@@ -19,6 +18,7 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.AUTO)  // Auto-increments the ID, handled by Postgres
     private Integer id;
 
+    
     private String name;  // Name of the event
     private String organizer;  // Just the name of the organizer (not linked to a class)
 
