@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class EventController {
-    
-    // Controller to handle employee repository, acting as a middle-man between HTTP requests and database actions
+
+    // Controller to handle employee repository
     private final EventRepository eventRepository;
 
     // Constructor injection: Spring injects the employeeRepository here
@@ -26,7 +26,6 @@ public class EventController {
     // POST request to add a new employee
     @PostMapping("/events")
     public Event addOneEvent(@RequestBody Event event) {
-        // Saves the incoming employee object to the database and returns it
         return this.eventRepository.save(event);
     }
 

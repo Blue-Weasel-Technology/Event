@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event Map Leaflet</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Date Range Picker CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+    }
+
+    .container {
+      display: flex;
+      justify-content: space-between;
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding-top: 30px;
+      padding-bottom: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      width: 100%;
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+
+    .filters-container {
+      width: 30%;
+      display: flex;
+      flex-direction: column;
+      padding-right: 20px;
+    }
+
+    .filters-container input,
+    .filters-container select {
+      width: 90%;
+      padding: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .filters-container .filters {
+      display: flex;
+      justify-content: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+
+    .filters-container .filters input {
+      margin: 0;
+      width: auto;
+    }
+
+    .filters-container .filters label {
+      font-size: 14px;
+      margin-right: 5px;
+    }
+
+    #daterangePicker,
+    #clearFiltersButton {
+      width: 90%;
+      padding: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    #clearFiltersButton {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    #map {
+      height: 700px;
+      width: 65%;
+      border: 2px solid #444;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Events Around You</h1>
+
+  <div class="container">
+    <!-- Filters Container -->
+    <div class="filters-container">
+      <input type="search" id="filterName" placeholder="Filter by event name" />
+
+      <select id="filterStyle">
+        <option value="All">All</option>
+        <option value="Blues">Blues</option>
+        <option value="Boardgames">Boardgames</option>
+        <option value="Clasica">Clasica</option>
+        <option value="Conferinte">Conferinte</option>
+        <option value="Colinde">Colinde</option>
+        <option value="Electronica">Electronica</option>
+        <option value="Folk">Folk</option>
+        <option value="Hip Hop">Hip Hop</option>
+        <option value="Jazz">Jazz</option>
+        <option value="Party">Party</option>
+        <option value="Manele">Manele</option>
+        <option value="Metal">Metal</option>
+        <option value="Muzica de Petrecere">Muzica de Petrecere</option>
+        <option value="Populara">Populara</option>
+        <option value="Pop">Pop</option>
+        <option value="Pop Rock">Pop Rock</option>
+        <option value="Reggae">Reggae</option>
+        <option value="Rock">Rock</option>
+        <option value="Trap">Trap</option>
+        <option value="World Music">World Music</option>
+      </select>
+
+      <div class="filters">
+        <input type="radio" id="filterToday" name="dateFilter" value="today">
+        <label for="filterToday">Today</label>
+        <input type="radio" id="filterWeek" name="dateFilter" value="week">
+        <label for="filterWeek">This Week</label>
+        <input type="radio" id="filterMonth" name="dateFilter" value="month">
+        <label for="filterMonth">This Month</label>
+      </div>
+
+      <input type="text" id="daterangePicker" />
+      <button id="clearFiltersButton">Clear Filters</button>
+    </div>
+
+    <div id="map"></div>
+  </div>
+
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    const map = L.map('map', { attributionControl: false }).setView([44.4268, 26.1025], 6);
+    const customIcon = L.icon({ iconUrl: 'https://i.ibb.co/QvpHdZq6/Layer-1.png', iconSize: [41, 60], iconAnchor: [20, 60], popupAnchor: [-3, -76] });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+
+    let markers = [];
+    let currentStartDate = null;
+    let currentEndDate = null;
+
+    fetch('/events').then(r => r.json()).then(events => {
+      events.forEach(event => {
+        const lat = event.latitude, lon = event.longitude;
+        if (lat && lon) {
+          const popupContent = `<strong>${event.name}</strong><br>${event.description || ''}<br><em>${event.locationDescription || ''}</em><br><small>${moment(event.eventDateTime).format('DD/MM/YYYY HH:mm')}</small>`;
+          const marker = L.marker([lat, lon], { icon: customIcon }).addTo(map).bindPopup(popupContent);
+          markers.push({ event, marker });
+        }
+      });
+      filterEvents(); // Initial filter
+    }).catch(err => console.error('Failed to load events:', err));
+
+    $('#daterangePicker').daterangepicker({
+      autoUpdateInput: false, opens: 'left',
+      locale: { format: 'DD/MM/YYYY', cancelLabel: 'Clear' }
+    });
+    $('#daterangePicker').on('apply.daterangepicker', function (ev, picker) {
+      currentStartDate = picker.startDate.startOf('day').toDate();
+      currentEndDate = picker.endDate.endOf('day').toDate();
+      $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+      document.querySelectorAll('input[name="dateFilter"]').forEach(rb => rb.checked = false);
+      filterEvents();
+    });
+    $('#daterangePicker').on('cancel.daterangepicker', function () {
+      $(this).val('');
+      currentStartDate = null;
+      currentEndDate = null;
+      filterEvents();
+    });
+
+    const setDateRangePicker = (start, end) => {
+      $('#daterangePicker').data('daterangepicker').setStartDate(start);
+      $('#daterangePicker').data('daterangepicker').setEndDate(end);
+      $('#daterangePicker').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+      currentStartDate = start.startOf('day').toDate();
+      currentEndDate = end.endOf('day').toDate();
+    };
+
+    document.getElementById('filterToday').addEventListener('change', () => {
+      if (document.getElementById('filterToday').checked) {
+        const today = moment();
+        setDateRangePicker(today, today);
+        filterEvents();
+      }
+    });
+    document.getElementById('filterWeek').addEventListener('change', () => {
+      if (document.getElementById('filterWeek').checked) {
+        const today = moment(), endOfWeek = moment().add(6, 'days');
+        setDateRangePicker(today, endOfWeek);
+        filterEvents();
+      }
+    });
+    document.getElementById('filterMonth').addEventListener('change', () => {
+      if (document.getElementById('filterMonth').checked) {
+        const today = moment(), endOfMonth = moment().add(29, 'days');
+        setDateRangePicker(today, endOfMonth);
+        filterEvents();
+      }
+    });
+
+    const filterEvents = () => {
+      const searchTerm = document.getElementById('filterName').value.toLowerCase().trim();
+      const selectedStyle = document.getElementById('filterStyle').value;
+
+      markers.forEach(({ event, marker }) => {
+        const eventDate = new Date(event.eventDateTime);
+        let showEvent = true;
+
+        if (searchTerm && !event.name.toLowerCase().includes(searchTerm)) showEvent = false;
+        if (currentStartDate && currentEndDate && (eventDate < currentStartDate || eventDate > currentEndDate)) showEvent = false;
+        if (selectedStyle !== 'All' && (!event.style || event.style.toLowerCase() !== selectedStyle.toLowerCase())) showEvent = false;
+
+        if (showEvent && !map.hasLayer(marker)) map.addLayer(marker);
+        else if (!showEvent && map.hasLayer(marker)) map.removeLayer(marker);
+      });
+    };
+
+    document.getElementById('filterName').addEventListener('input', filterEvents);
+    document.getElementById('filterStyle').addEventListener('change', filterEvents);
+
+    document.getElementById('clearFiltersButton').addEventListener('click', () => {
+      document.getElementById('filterName').value = '';
+      document.getElementById('filterStyle').value = 'All';
+      document.querySelectorAll('input[name="dateFilter"]').forEach(rb => rb.checked = false);
+      $('#daterangePicker').val('');
+      currentStartDate = null;
+      currentEndDate = null;
+      filterEvents();
+    });
+  </script>
+</body>
+
+</html>
