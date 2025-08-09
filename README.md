@@ -1,5 +1,9 @@
 Setup:
 
+Selenium Web Scraping
+
+This project includes Selenium for web scraping purposes. Currently, it scrapes data from a specified web source and displays the results directly in the terminal. No front-end display is implemented yet.
+
 Lombok:
 - Lombok is included to make the `Event` class cleaner.
 - It automatically generates Getters, Setters, Constructors, Hashcode, and Equals methods during runtime.
