@@ -102,9 +102,15 @@ public class Scraper {
 
                         // Call convertCoordinates using the CoordinatesConverter instance
                         coordinates = coordinatesConverter.convertCoordinates(locationDescription);
-                        
+                        String shortDescription;
+                        if(description.length()<=100) {
+                            shortDescription=description;
+                        } else {
+                            shortDescription = description.substring(0, 100) + "...";
+                        }
+                        java.sql.Timestamp parsedDate = DateParser.parse(localDateTime);
                         System.out.println(name + "\n" + style + "\n" + image + "\n" + locationDescription + "\n" + coordinates[0] + "\n" + coordinates[1] + "\n" + localDateTime + "\n" + description + "\n" + "------------------------------------------------");
-                        EventAdd.add(description.substring(0, 100) + "...", DateParser.parse(localDateTime), image, coordinates[0], locationDescription, coordinates[1], name, style);
+                        EventAdd.add(shortDescription, parsedDate, image, coordinates[0], locationDescription, coordinates[1], name, style);
                     } else {
                         continue;
                     }
