@@ -1,4 +1,4 @@
-package com.criss.event;
+package com.criss.event.scraping;
 
 
 import org.openqa.selenium.WebDriver;

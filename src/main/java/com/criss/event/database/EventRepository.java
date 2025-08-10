@@ -1,4 +1,4 @@
-package com.criss.event;
+package com.criss.event.database;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

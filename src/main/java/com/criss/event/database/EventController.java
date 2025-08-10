@@ -1,8 +1,6 @@
-package com.criss.event;
+package com.criss.event.database;
 
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -21,12 +19,6 @@ public class EventController {
     public Iterable<Event> findAllEvents() {
         // Fetches all employee records from the database using the repository
         return eventRepository.findAll();
-    }
-
-    // POST request to add a new employee
-    @PostMapping("/events")
-    public Event addOneEvent(@RequestBody Event event) {
-        return this.eventRepository.save(event);
     }
 
 }

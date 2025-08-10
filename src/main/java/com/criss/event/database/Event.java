@@ -1,4 +1,4 @@
-package com.criss.event;
+package com.criss.event.database;
 
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
