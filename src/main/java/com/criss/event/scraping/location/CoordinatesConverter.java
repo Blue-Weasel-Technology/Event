@@ -5,7 +5,7 @@ import java.util.List;
 
 
 public class CoordinatesConverter {
-    public double[] convertCoordinates(String locationDescription) {
+    public double[] convertCoordinates(String locationDescription) throws InterruptedException {
 
         // List of cities in Romania
         List<String> cities = List.of(
