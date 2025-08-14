@@ -1,6 +1,5 @@
 package com.criss.event.scraping;
 
-
 import org.openqa.selenium.WebDriver;
 
 public class Bot {
@@ -22,6 +21,7 @@ public class Bot {
             System.out.println(e.getMessage());
         }
     }
+    
 
     
 }
