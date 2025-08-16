@@ -88,9 +88,23 @@ public class Scraper {
             System.out.println(styleSortedLinks.toString());
             for (String styleSortedLink : styleSortedLinks) {
                 
-                try {
-                    scrapeBot.search(styleSortedLink);
-                } catch (Exception e) { System.err.println("Error: Unable to find styleSortedLink! \n" + e);}
+                scrapeBot.search(styleSortedLink);
+                boolean multipleEvents=false;
+                try{
+                    driver.findElement(By.linkText("ia bilet"));
+                    multipleEvents=true;
+                } catch(Exception e) {System.out.println("Success: Event was found!");}
+
+                if(multipleEvents) {
+                    try {
+                        List<WebElement> extraEvents = new ArrayList<>();
+                        extraEvents=driver.findElements(By.linkText("ia bilet"));
+                        for(WebElement extraEvent : extraEvents) {
+                            styleSortedLinks.add(extraEvent.getDomProperty("href"));
+                        }
+                    } catch(Exception e) {System.err.println("Error: Unable to find multiple events!");}
+                    
+                }
 
                     String name=null;
                 
