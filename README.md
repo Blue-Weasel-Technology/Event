@@ -18,5 +18,6 @@ In your application.properties, fill in your Postgres creds like this:
 Additional Details:
 - The scraper and database integration has been added so that scraped events are automatically saved to the database.
 - Locations from scraped events are transformed into geographic coordinates and shown on the map.
+- Added button that gets the user's location and marks it on the map
 - We still need to improve the scraper because it currently ignores some events from the source list.
 - Also, a way to retrieve and display events on the map without relying on the public REST controller at /events is still being developed.
