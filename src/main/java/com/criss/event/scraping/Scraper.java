@@ -67,13 +67,13 @@ public class Scraper {
         }
 
         styles.forEach((k, v) -> {
-            boolean continueGatherData=true;
+            List<WebElement> titleDivs = new ArrayList<>();
             scrapeBot.search(k); // opens style-specific page
             List<WebElement> styleSortedAnchors = new ArrayList<>();
             Set<String> styleSortedLinks = new HashSet<>(); // Event links of a specific style
+            WebElement eventListItems;
             try {
-                WebElement eventListItems = driver.findElement(By.className("event-list-items"));
-                List<WebElement> titleDivs = new ArrayList<>();
+                eventListItems = driver.findElement(By.className("event-list-items"));
                 titleDivs = eventListItems.findElements(By.className("title"));
                 for(WebElement titleDiv : titleDivs){
                     styleSortedAnchors.add(titleDiv.findElement(By.tagName("a")));
@@ -84,11 +84,37 @@ public class Scraper {
             } catch (Exception e) {
                 System.err.println("EVENT LINKS NOT FOUND IN THEIR STYLE CATEGORY!");
             }
+            //Searches for more events
+            boolean newPage=true;
+            String moreButtonLink=null;
+            while(newPage){
+                newPage=false;
+                try {
+                moreButtonLink = driver.findElement(By.className("btn-more")).getDomProperty("href");
+                newPage=true;
+            } catch(Exception e) {}
+                if(newPage){
+                    try{
+                        List<WebElement> moreStyleSortedAnchors = new ArrayList<>();
+                        scrapeBot.search(moreButtonLink);
+                        eventListItems = driver.findElement(By.className("event-list-items"));
+                        titleDivs = eventListItems.findElements(By.className("title"));
+                    for(WebElement titleDiv : titleDivs){
+                        moreStyleSortedAnchors.add(titleDiv.findElement(By.tagName("a")));
+                    }
+                    for (WebElement moreStyleSortedAnchor : moreStyleSortedAnchors) {
+                        styleSortedLinks.add(moreStyleSortedAnchor.getDomProperty("href"));
+                }
+                } catch (Exception e) {System.err.println("Error: Unable to find more events!");}
+                
+            }
+            }
             Set<String> visitedNames = new HashSet<>();
             System.out.println(styleSortedLinks.toString());
             for (String styleSortedLink : styleSortedLinks) {
                 
                 scrapeBot.search(styleSortedLink);
+                boolean continueGatherData=true;
                 boolean multipleEvents=false;
                 try{
                     driver.findElement(By.linkText("ia bilet"));
@@ -129,13 +155,22 @@ public class Scraper {
                         String localDateTime=null;
                         String description=null;
                         double[] coordinates = new double[]{0, 0};
-                        
+                        try{
                         WebElement poster = driver.findElement(By.className("poster-image"));
                         image = poster.findElement(By.tagName("img")).getDomProperty("src");
+                        } catch(Exception e) {System.err.println("Error: Unable to find Image! \n"+ e);}
                         
+                        try{
                         locationDescription = driver.findElement(By.className("location")).getText();
+                        } catch(Exception e) {System.err.println("Error: Unable to find Location! \n"+ e);}
+
+                        try{
                         locationDescription = RomanianConverter.convertRomanianChars(locationDescription);
+                        } catch(Exception e) {System.err.println("Error: Unable to convert Romanian characters in Location! \n"+ e);}
+
+                        try{
                         localDateTime = driver.findElement(By.className("date")).getText();
+                        } catch(Exception e) {System.err.println("Error: Unable to find Date! \n"+ e);}
                         
                         java.sql.Timestamp parsedDate = null;
                         try {
@@ -144,13 +179,20 @@ public class Scraper {
                             System.err.println("Could not parse date: " + localDateTime + " -> " + e.getMessage());
                         }
                         
-                        driver.findElement(By.className("event-detail-toggle")).click();
-                        scrapeBot.sleep(1);
+                        try{
+                            driver.findElement(By.className("event-detail-toggle")).click();
+                            scrapeBot.sleep(1);
+                        } catch(Exception e) {System.err.println("Warning: Unable to click more details for the Description! \n" + e);}
                         
-                        description = driver.findElement(By.className("short-desc")).getText();
-                        description = description + " " + driver.findElement(By.className("event-detail")).getText();
-                        description = RomanianConverter.convertRomanianChars(description);
+                        try {
+                            description = driver.findElement(By.className("short-desc")).getText();
+                        } catch(Exception e) {System.err.println("Error: Unable to find Short Description! \n" + e);}
+                        try {
+                            description = description + " " + driver.findElement(By.className("event-detail")).getText();
+                            description = RomanianConverter.convertRomanianChars(description);
+                        } catch(Exception e) {System.err.println("Error: Unable to create the complete Description! \n"+ e);}
 
+                        
                            
                         String shortDescription;
                         if(description.length()<=100) {
@@ -158,8 +200,10 @@ public class Scraper {
                         } else {
                             shortDescription = description.substring(0, 100) + "...";
                         } 
-                        System.out.println("Description: " + locationDescription);
-                        coordinates = coordinatesConverter.convertCoordinates(locationDescription);
+
+                        try{
+                            coordinates = coordinatesConverter.convertCoordinates(locationDescription);
+                        } catch(Exception e) {System.err.println("Error: Unable to locate Event and could not get coordinates! \n" + e);}
                         
                         System.out.println(name + "\n" + style + "\n" + image + "\n" + locationDescription + "\n" + coordinates[0] + "\n" + coordinates[1] + "\n" + localDateTime + "\n" + description + "\n" + "------------------------------------------------");
                         if(shortDescription!=null && parsedDate!=null && image!=null &&  locationDescription!=null && name!= null)      //coordinates[0]!=0 && coordinates[1]!=0;
