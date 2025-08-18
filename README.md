@@ -1,21 +1,22 @@
 Setup:
 
 Lombok:
-- Lombok is included to make the `Event` class cleaner.
+- Lombok is included to make the code cleaner.
 - It automatically generates Getters, Setters, Constructors, Hashcode, and Equals methods during runtime.
 
 Database Setup:
-- PostgreSQL is used, and the `events` table is created automatically. (Port 5432!!)
-- JSON gathering for events is **temporarily disabled**.
-- To add events, just use this command in PowerShell:
-
-Invoke-WebRequest -Uri "http://localhost:8080/events" -Method Post -Body '{"name": "Music Festival", "organizer": "John Doe", "locationDescription": "Central Park, NYC", "latitude": 40.785091, "longitude": -73.968285, "eventDatetime": "2023-08-15T18:00:00", "description": "A fun and exciting music festival featuring top artists."}' -Headers @{"Content-Type"="application/json"}
+- PostgreSQL is used, and the events table is created automatically. (Port 5432!!)
+- Events are added from iabilete, a site the scraper gathers data from and sends it to the database.
+- The scraper uses Nominatim to transform location descriptions into geographic coordinates (latitude and longitude), which are then displayed on the map.
 
 Database Connection:
-- In your `application.properties`, fill in your Postgres creds like this:
+In your application.properties, fill in your Postgres creds like this:
+- spring.datasource.url=jdbc:postgresql://localhost:5432/your_database_name
+- spring.datasource.username=your_username
+- spring.datasource.password=your_password
 
-spring.datasource.url=jdbc:postgresql://localhost:5432/your_database_name
-
-spring.datasource.username=your_username
-
-spring.datasource.password=your_password
+Additional Details:
+- The scraper and database integration has been added so that scraped events are automatically saved to the database.
+- Locations from scraped events are transformed into geographic coordinates and shown on the map.
+- We still need to improve the scraper because it currently ignores some events from the source list.
+- Also, a way to retrieve and display events on the map without relying on the public REST controller at /events is still being developed.

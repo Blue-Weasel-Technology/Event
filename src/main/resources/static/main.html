@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Event Map Leaflet</title>
+  <title>NearMe</title>
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -12,103 +12,20 @@
   <!-- Date Range Picker CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
-    }
-
-    .container {
-      display: flex;
-      justify-content: space-between;
-      width: 90%;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding-top: 30px;
-      padding-bottom: 20px;
-    }
-
-    h1 {
-      text-align: center;
-      width: 100%;
-      font-size: 32px;
-      margin-bottom: 20px;
-    }
-
-    .filters-container {
-      width: 30%;
-      display: flex;
-      flex-direction: column;
-      padding-right: 20px;
-    }
-
-    .filters-container input,
-    .filters-container select {
-      width: 90%;
-      padding: 8px;
-      font-size: 14px;
-      margin-bottom: 12px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    .filters-container .filters {
-      display: flex;
-      justify-content: flex-start;
-      gap: 8px;
-      margin-bottom: 10px;
-      align-items: center;
-    }
-
-    .filters-container .filters input {
-      margin: 0;
-      width: auto;
-    }
-
-    .filters-container .filters label {
-      font-size: 14px;
-      margin-right: 5px;
-    }
-
-    #daterangePicker,
-    #clearFiltersButton {
-      width: 90%;
-      padding: 8px;
-      font-size: 14px;
-      margin-bottom: 12px;
-      border-radius: 5px;
-      box-sizing: border-box;
-    }
-
-    #clearFiltersButton {
-      background-color: #f44336;
-      color: white;
-      border: none;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-
-    #map {
-      height: 700px;
-      width: 65%;
-      border: 2px solid #444;
-      border-radius: 10px;
-    }
-  </style>
+  <!-- Link to External Stylesheet -->
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
 
-  <h1>Events Around You</h1>
-
   <div class="container">
-    <!-- Filters Container -->
-    <div class="filters-container">
-      <input type="search" id="filterName" placeholder="Filter by event name" />
+    <!-- Left Panel: Title + Filters -->
+    <div class="left-panel">
+      <img src="https://i.ibb.co/Kc1nQCcR/Layer-4.png" alt="NearMe Events Logo" class="logo" />
 
-      <select id="filterStyle">
+      <div class="filters-container">
+        <input type="search" id="filterName" placeholder="Filter by event name or location" />
+        <select id="filterStyle">
         <option value="All">All</option>
         <option value="Blues">Blues</option>
         <option value="Boardgames">Boardgames</option>
@@ -132,7 +49,7 @@
         <option value="World Music">World Music</option>
       </select>
 
-      <div class="filters">
+        <div class="filters">
         <input type="radio" id="filterToday" name="dateFilter" value="today">
         <label for="filterToday">Today</label>
         <input type="radio" id="filterWeek" name="dateFilter" value="week">
@@ -141,10 +58,20 @@
         <label for="filterMonth">This Month</label>
       </div>
 
-      <input type="text" id="daterangePicker" />
-      <button id="clearFiltersButton">Clear Filters</button>
+        <input type="text" id="daterangePicker" />
+        <button id="clearFiltersButton">Clear Filters</button>
+      </div>
+      
+    </div>
+    <!-- Modal HTML -->
+    <div id="eventModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <div id="modalContent"></div>
+      </div>
     </div>
 
+    <!-- Right Panel: Map -->
     <div id="map"></div>
   </div>
 
@@ -155,25 +82,161 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
-    const map = L.map('map', { attributionControl: false }).setView([44.4268, 26.1025], 6);
-    const customIcon = L.icon({ iconUrl: 'https://i.ibb.co/QvpHdZq6/Layer-1.png', iconSize: [41, 60], iconAnchor: [20, 60], popupAnchor: [-3, -76] });
+        // Get the modal
+    const modal = document.getElementById("eventModal");
+    const modalContent = document.getElementById("modalContent");
+    const closeBtn = document.querySelector(".close");
+
+    // Function to open the modal with event details
+    function openModal(eventData) {
+      const content = `
+        <h2>${eventData.name}</h2>
+        <img src="${eventData.image}" alt="${eventData.name}" style="width: 144px; height: 204px; object-fit: cover; border-radius: 4px;">
+        <p>${eventData.description ? eventData.description : 'No description available'}</p>
+        <p><strong>Date:</strong> ${moment(eventData.eventDateTime).format('DD/MM/YYYY HH:mm')}</p>
+      `;
+      modalContent.innerHTML = content;
+      modal.style.display = "block";
+
+      const currentCenter = map.getCenter();
+      const newCenter = L.latLng(eventData.latitude, eventData.longitude);  
+      
+      const offset = [0, 0.1]; 
+
+      map.setView([newCenter.lat + offset[0], newCenter.lng + offset[1]], 12);  
+    }
+    closeBtn.onclick = function() {
+      modal.style.display = "none";
+    }
+
+
+    window.onclick = function(event) {
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    const map = L.map('map', { attributionControl: false });
+    const customIcon = L.icon({
+      iconUrl: 'https://i.ibb.co/5WKs1jDz/Layer-2.png',
+      iconSize: [25, 40],
+      iconAnchor: [13, 40],
+      popupAnchor: [0, -56]
+    });
+
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
 
     let markers = [];
     let currentStartDate = null;
     let currentEndDate = null;
 
-    fetch('/events').then(r => r.json()).then(events => {
-      events.forEach(event => {
-        const lat = event.latitude, lon = event.longitude;
-        if (lat && lon) {
-          const popupContent = `<strong>${event.name}</strong><br>${event.description || ''}<br><em>${event.locationDescription || ''}</em><br><small>${moment(event.eventDateTime).format('DD/MM/YYYY HH:mm')}</small>`;
-          const marker = L.marker([lat, lon], { icon: customIcon }).addTo(map).bindPopup(popupContent);
-          markers.push({ event, marker });
-        }
+    function buildPopupContent(ev, idx, total, lat, lon) {
+  return `
+    <div style="display: flex; max-width: 350px; cursor: pointer;" onclick='openModal(${JSON.stringify(ev)})'>
+      <div style="flex: 0 0 144px; margin-right: 10px;">
+        <img src="${ev.image}" alt="${ev.name}" 
+             style="width: 154px; height: 204px; object-fit: cover; border-radius: 4px;">
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; min-height: 204px; position: relative;">
+        
+        <!-- Event title -->
+        <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px;">
+          ${ev.name}
+        </div>
+        
+        <!-- Event description -->
+        <div style="color: #555; font-size: 14px; margin-bottom: 8px; flex-grow: 1;">
+          ${ev.description ? ev.description : 'No description available'}
+        </div>
+        
+        <!-- Event date -->
+        <div style="color: #555; font-size: 14px; margin-bottom: 8px;">
+          ${moment(ev.eventDateTime).format('DD/MM/YYYY HH:mm')}
+        </div>
+        
+        <!-- Navigation & index pinned to bottom -->
+        ${total > 1 ? `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 8px; border-top: 1px solid #ddd;">
+          <button onclick="event.stopPropagation(); window.cycleEvent(${lat}, ${lon}, -1)">⟵</button>
+          <span style="font-size: 13px; color: #333;">${idx + 1} / ${total}</span>
+          <button onclick="event.stopPropagation(); window.cycleEvent(${lat}, ${lon}, 1)">⟶</button>
+        </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+fetch('/events')
+  .then(r => r.json())
+  .then(events => {
+    const grouped = {};
+    events.forEach(event => {
+      const lat = event.latitude, lon = event.longitude;
+      if (lat && lon) {
+        const key = `${lat},${lon}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(event);
+      }
+    });
+
+    Object.values(grouped).forEach(groupEvents => {
+      const lat = groupEvents[0].latitude;
+      const lon = groupEvents[0].longitude;
+
+      const iconUrl = groupEvents.length > 1 
+        ? 'https://i.ibb.co/ty6bzbz/Multi-Events.png'
+        : 'https://i.ibb.co/5WKs1jDz/Layer-2.png';
+
+      const iconSize = groupEvents.length > 1 
+        ? [45, 42]
+        : [25, 40];
+
+      const iconAnchor = groupEvents.length > 1 
+        ? [23, 42]
+        : [13, 40];
+
+      const popupAnchor = groupEvents.length > 1 
+        ? [0, -56]
+        : [0, -56];
+        
+      const customIcon = L.icon({
+        iconUrl,
+        iconSize,
+        iconAnchor,
+        popupAnchor
       });
-      filterEvents(); // Initial filter
-    }).catch(err => console.error('Failed to load events:', err));
+
+      const marker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
+      marker.groupEvents = groupEvents;
+      marker.currentIndex = 0;
+
+      marker.bindPopup(buildPopupContent(groupEvents[0], 0, groupEvents.length, lat, lon),{maxWidth: 600, maxHeight: 400});
+      marker.on('mouseover', function () { this.openPopup(); });
+      marker.on('click', function () {
+  openModal(marker.groupEvents[marker.currentIndex]); // opens your sidebar/modal
+});
+
+      markers.push({ event: groupEvents[0], marker, groupEvents });
+    });
+
+    window.cycleEvent = function(lat, lon, direction) {
+      const markerObj = markers.find(m => m.marker.getLatLng().lat === lat && m.marker.getLatLng().lng === lon);
+      if (!markerObj) return;
+
+      const marker = markerObj.marker;
+      let idx = marker.currentIndex + direction;
+      if (idx < 0) idx = marker.groupEvents.length - 1;
+      if (idx >= marker.groupEvents.length) idx = 0;
+
+      marker.currentIndex = idx;
+      marker.setPopupContent(buildPopupContent(marker.groupEvents[idx], idx, marker.groupEvents.length, lat, lon));
+      marker.openPopup();
+    };
+
+    filterEvents();
+  })
+  .catch(err => console.error('Failed to load events:', err));
 
     $('#daterangePicker').daterangepicker({
       autoUpdateInput: false, opens: 'left',
@@ -227,17 +290,43 @@
       const searchTerm = document.getElementById('filterName').value.toLowerCase().trim();
       const selectedStyle = document.getElementById('filterStyle').value;
 
+      const visibleMarkers = [];
+
       markers.forEach(({ event, marker }) => {
         const eventDate = new Date(event.eventDateTime);
         let showEvent = true;
 
-        if (searchTerm && !event.name.toLowerCase().includes(searchTerm)) showEvent = false;
-        if (currentStartDate && currentEndDate && (eventDate < currentStartDate || eventDate > currentEndDate)) showEvent = false;
-        if (selectedStyle !== 'All' && (!event.style || event.style.toLowerCase() !== selectedStyle.toLowerCase())) showEvent = false;
+        // Search filter (now matches name OR location)
+        if (searchTerm) {
+          const nameMatch = event.name && event.name.toLowerCase().includes(searchTerm);
+          const locationMatch = event.locationDescription && event.locationDescription.toLowerCase().includes(searchTerm);
+          if (!nameMatch && !locationMatch) showEvent = false;
+        }
 
-        if (showEvent && !map.hasLayer(marker)) map.addLayer(marker);
-        else if (!showEvent && map.hasLayer(marker)) map.removeLayer(marker);
+        // Date filter
+        if (currentStartDate && currentEndDate && (eventDate < currentStartDate || eventDate > currentEndDate)) {
+          showEvent = false;
+        }
+
+        // Style filter
+        if (selectedStyle !== 'All' && (!event.style || event.style.toLowerCase() !== selectedStyle.toLowerCase())) {
+          showEvent = false;
+        }
+
+        // Show/hide markers
+        if (showEvent) {
+          if (!map.hasLayer(marker)) map.addLayer(marker);
+          visibleMarkers.push(marker);
+        } else {
+          if (map.hasLayer(marker)) map.removeLayer(marker);
+        }
       });
+
+      // Auto zoom to visible markers
+      if (visibleMarkers.length > 0) {
+        const group = L.featureGroup(visibleMarkers);
+        map.fitBounds(group.getBounds().pad(0.2)); // pad so markers aren’t on the edges
+      }
     };
 
     document.getElementById('filterName').addEventListener('input', filterEvents);
@@ -252,6 +341,19 @@
       currentEndDate = null;
       filterEvents();
     });
+
+  
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .leaflet-popup-content {
+        pointer-events: auto !important;
+      }
+      .leaflet-popup-close-button {
+        pointer-events: auto !important;
+      }
+    `;
+    document.head.appendChild(style);
+
   </script>
 </body>
 

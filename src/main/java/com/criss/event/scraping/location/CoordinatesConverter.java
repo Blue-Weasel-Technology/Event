@@ -3,9 +3,8 @@ package com.criss.event.scraping.location;
 import java.util.regex.*;
 import java.util.List;
 
-
 public class CoordinatesConverter {
-    public double[] convertCoordinates(String locationDescription) throws InterruptedException {
+    public double[] convertCoordinates(String locationDescription) {
 
         // List of cities in Romania
         List<String> cities = List.of(
@@ -13,8 +12,8 @@ public class CoordinatesConverter {
             "Barnova", "Beius", "Belis", "Bistrita", "Blaj", "Bobalna", "Botosani", "Braila", "Brasov", "Breb", "Brezoi",
             "Buftea", "Buzau", "Calarasi", "Campina", "Campulung", "Campulung Moldovenesc", "Caransebes", "Cernavoda",
             "Cernica", "Chisoda", "Chitila", "Cislau", "Cisnadie", "Clondiru de Sus", "Cluj-Napoca", "Codlea", "Constanta",
-            "Corbu", "Corbu", "Costinesti", "Craiova", "Cristian", "Darabani", "Darmănești", "Dej", "Deva", "Dorohoi",
-            "Drobeta-Turnu Severin", "Fagaras", "Falticeni", "Feleacu", "Floresti", "Floresti", "Focsani", "Galati", 
+            "Corbu", "Costinesti", "Craiova", "Cristian", "Darabani", "Darmănești", "Dej", "Deva", "Dorohoi",
+            "Drobeta-Turnu Severin", "Fagaras", "Falticeni", "Feleacu", "Floresti", "Focsani", "Galati", 
             "Garana", "Gheorghe Doja", "Giurgiu", "Govora", "Gura Humorului", "Gura Vadului", "Horezu", "Hunedoara", 
             "Iasi", "Ilia", "Insurăței", "Izvoarele", "Jupiter", "Ludus", "Lugoj", "Mamaia", "Mamaia-Sat", "Mangalia", 
             "Margau", "Medias", "Merisani", "Miercurea Ciuc", "Mioveni", "Mocesti", "Mogosoaia", "Nehoiu", "Onesti", 
@@ -25,55 +24,62 @@ public class CoordinatesConverter {
             "Vaslui", "Venus", "Viseu de Sus", "Zalau"
         );
 
-        // Variables to store postal code, city, and parts of location
+        // Variables
         String postalCode = "";
         String city = "";
         String locationSearch1 = "";
         String locationSearch2 = "";
         double[] coordinates = new double[]{0, 0};
 
-        // 1. Extract the postal code (6 digits)
+        // 1. Extract postal code
         String postalCodeRegex = "\\d{6}";
         Pattern postalCodePattern = Pattern.compile(postalCodeRegex);
         Matcher postalCodeMatcher = postalCodePattern.matcher(locationDescription);
 
-        if (postalCodeMatcher.find())
-        {
-            postalCode = postalCodeMatcher.group();  // Extract the postal code
+        if (postalCodeMatcher.find()) {
+            postalCode = postalCodeMatcher.group();
             locationDescription = locationDescription.replace(postalCode, "").trim();
         }
-            postalCode = postalCodeMatcher.group();  // Extract the postal code
 
-         // 2. Split the updated description into locationSearch1 and locationSearch2 based on newline
-        String[] splitLocation = locationDescription.split("\n", 2);
-        
-        if (splitLocation.length > 0) {
-            locationSearch1 = splitLocation[0].trim();  // First part (before newline)
-        }
+        // 2. Split by newline if exists
+        if (locationDescription.contains("\n")) {
+            String[] splitLocation = locationDescription.split("\n", 2);
 
-        if (splitLocation.length > 1) {
-            locationSearch2 = splitLocation[1].trim();  // Second part (after newline)
-        }
-
-        // 3. Extract the city name from the list of Romanian cities
-        for (String c : cities) {
-            String cityRegex = "\\b" + Pattern.quote(c) + "\\b";
-            Pattern cityPattern = Pattern.compile(cityRegex, Pattern.CASE_INSENSITIVE);
-            Matcher cityMatcher = cityPattern.matcher(locationSearch1);
-
-            if (cityMatcher.find()) {
-                city = cityMatcher.group();
-                break;
+            if (splitLocation.length > 0) {
+                locationSearch1 = splitLocation[0].trim();
             }
+
+            if (splitLocation.length > 1) {
+                locationSearch2 = splitLocation[1].trim();
+            }
+
+            // 3. Extract city name
+            for (String c : cities) {
+                String cityRegex = "\\b" + Pattern.quote(c) + "\\b";
+                Pattern cityPattern = Pattern.compile(cityRegex, Pattern.CASE_INSENSITIVE);
+                Matcher cityMatcher = cityPattern.matcher(locationSearch1);
+
+                if (cityMatcher.find()) {
+                    city = cityMatcher.group();
+                    break;
+                }
+            }
+
+            // 4. Add city to locationSearch2 if missing
+            if (!city.isEmpty() && !locationSearch2.contains(city)) {
+                locationSearch2 = locationSearch2 + " " + city;
+            }
+        } else {
+            locationSearch1 = locationDescription;
         }
 
-        // 4. Add city to locationSearch1 and locationSearch2 if not already present
-        if (!city.isEmpty() && !locationSearch2.contains(city))
-                locationSearch2 = locationSearch2 + " " + city;
+        System.out.println("Location Search 1: " + locationSearch1);
+        System.out.println("Location Search 2: " + locationSearch2);
+        System.out.println("Postal Code: " + postalCode);
 
-        coordinates = LocationService.getCoordinates(locationSearch1, locationSearch2, postalCode);             
+        coordinates = LocationService.getCoordinates(locationSearch1, locationSearch2, postalCode);
         return coordinates;
     }
-
 }
+
     
