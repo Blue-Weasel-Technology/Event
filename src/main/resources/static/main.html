@@ -60,6 +60,7 @@
 
         <input type="text" id="daterangePicker" />
         <button id="clearFiltersButton">Clear Filters</button>
+        <button id="getLocationButton">Get My Location</button>
       </div>
       
     </div>
@@ -353,6 +354,31 @@ fetch('/events')
       }
     `;
     document.head.appendChild(style);
+
+      document.getElementById('getLocationButton').addEventListener('click', function () {
+      if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function (position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+
+        // Add a marker for the user's location
+        L.marker([lat, lon], {
+          icon: L.icon({
+            iconUrl: 'https://i.ibb.co/Rp9QfZQD/orange-stick-figure-hi.png',
+            iconSize: [25, 65],
+            iconAnchor: [13, 65],
+            popupAnchor: [0, -40],
+          }),
+        }).addTo(map).bindPopup("You are here").openPopup();
+
+      }, function (error) {
+        alert("Error: " + error.message);
+      });
+    } else {
+      alert("Geolocation is not supported by your browser.");
+    }
+  });
 
   </script>
 </body>

@@ -143,6 +143,7 @@ public class Scraper {
 
                     // Replace Romanian characters
                 name = RomanianConverter.convertRomanianChars(name);
+                name = name.replace("Exclusiv pe iabilet.ro\n", "");
 
                 if (!visitedNames.contains(name)) {
                         visitedNames.add(name);
