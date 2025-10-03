@@ -29,4 +29,5 @@ public class Event {
     private LocalDateTime eventDateTime; // Combined date and time (including hour and minute)
 
     private String description; // Event description
+    private String link;    //Event link
 }

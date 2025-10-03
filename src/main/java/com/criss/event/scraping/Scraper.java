@@ -150,6 +150,7 @@ public class Scraper {
                 } else { continueGatherData=false;}
                 
                     if(continueGatherData){
+                        String link = styleSortedLink;
                         String style = v;
                         String image=null;
                         String locationDescription=null;
@@ -208,7 +209,7 @@ public class Scraper {
                         
                         System.out.println(name + "\n" + style + "\n" + image + "\n" + locationDescription + "\n" + coordinates[0] + "\n" + coordinates[1] + "\n" + localDateTime + "\n" + description + "\n" + "------------------------------------------------");
                         if(shortDescription!=null && parsedDate!=null && image!=null &&  locationDescription!=null && name!= null)      //coordinates[0]!=0 && coordinates[1]!=0;
-                            EventAdd.add(shortDescription, parsedDate, image, coordinates[0], locationDescription, coordinates[1], name, style);
+                            EventAdd.add(shortDescription, parsedDate, image, coordinates[0], locationDescription, coordinates[1], name, style, link);
                         else {
                             System.out.println("Error: Unable to add Event!");
                         }
