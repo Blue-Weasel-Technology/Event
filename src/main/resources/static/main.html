@@ -60,7 +60,7 @@
 
         <input type="text" id="daterangePicker" />
         <button id="clearFiltersButton">Clear Filters</button>
-        <button id="getLocationButton">Get My Location</button>
+        <button id="closestEventsButton">Closest Events</button>
       </div>
       
     </div>
@@ -91,11 +91,28 @@
     // Function to open the modal with event details
     function openModal(eventData) {
       const content = `
-        <h2>${eventData.name}</h2>
-        <img src="${eventData.image}" alt="${eventData.name}" style="width: 144px; height: 204px; object-fit: cover; border-radius: 4px;">
-        <p>${eventData.description ? eventData.description : 'No description available'}</p>
-        <p><strong>Date:</strong> ${moment(eventData.eventDateTime).format('DD/MM/YYYY HH:mm')}</p>
-      `;
+    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 20px; background-color: #f1f1f1; overflow: hidden; max-width: 100%; box-sizing: border-box;">
+        <div style="flex: 0 0 200px; margin-right: 20px; overflow: hidden;">
+            <img src="${eventData.image}" alt="${eventData.name}" style="width: 100%; height: auto; object-fit: cover; border-radius: 8px;">
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start; max-width: 100%;">
+            <h2 style="font-size: 24px; font-weight: bold; margin: 0; flex: 1;">${eventData.name}</h2>
+            <!-- Buy Tickets Button -->
+            <button onclick="window.open('${eventData.link}', '_blank')" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px;">
+                Buy Tickets
+            </button>
+        </div>
+    </div>
+    <div class="modal-body" style="padding: 20px; text-align: left; max-width: 600px; margin: 0 auto; overflow: hidden;">
+        <div style="margin-bottom: 15px;">
+            <strong>Date:</strong> ${moment(eventData.eventDateTime).format('DD/MM/YYYY HH:mm')}
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            ${eventData.description ? eventData.longDescription : 'No description available'}
+        </div>
+    </div>
+`;
       modalContent.innerHTML = content;
       modal.style.display = "block";
 
@@ -106,18 +123,21 @@
 
       map.setView([newCenter.lat + offset[0], newCenter.lng + offset[1]], 12);  
     }
-    closeBtn.onclick = function() {
-      modal.style.display = "none";
-    }
+    // Close modal on clicking the close button
+    closeBtn.onclick = function () {
+      modal.style.display = "none"; // Hide modal
+      modalContent.innerHTML = ''; // Clear previous content
+    };
 
-
-    window.onclick = function(event) {
+    // Close modal when clicking outside of the modal
+    window.onclick = function (event) {
       if (event.target === modal) {
-        modal.style.display = "none";
+        modal.style.display = "none"; // Hide modal
+        modalContent.innerHTML = ''; // Clear previous content
       }
-    }
+    };
 
-    const map = L.map('map', { attributionControl: false });
+    const map = L.map('map', { attributionControl: false, worldCopyJump: true});
     const customIcon = L.icon({
       iconUrl: 'https://i.ibb.co/5WKs1jDz/Layer-2.png',
       iconSize: [25, 40],
@@ -355,7 +375,7 @@ fetch('/events')
     `;
     document.head.appendChild(style);
 
-      document.getElementById('getLocationButton').addEventListener('click', function () {
+      document.getElementById('closestEventsButton').addEventListener('click', function () {
       if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(function (position) {
         const lat = position.coords.latitude;
@@ -379,7 +399,157 @@ fetch('/events')
       alert("Geolocation is not supported by your browser.");
     }
   });
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Earth radius in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // distance in km
+    }
 
+    // Function to open the popup with the nearest events and pan the map to the event
+    function openEventPopup(events, index) {
+        const event = events[index];
+
+        const content = `
+        <div style="padding: 20px; position: relative;">
+            <!-- First Div: Previous, Next Buttons -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <!-- Previous Button -->
+                <button onclick="navigateEvents(${index - 1})" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                    Previous
+                </button>
+                
+                <!-- Next Button -->
+                <button onclick="navigateEvents(${index + 1})" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                    Next
+                </button>
+            </div>
+
+            <div class="modal-header" style="display: flex; justify-content: flex-start; align-items: flex-start; padding: 20px; background-color: #f1f1f1; overflow: hidden; max-width: 100%; box-sizing: border-box; margin-bottom: 20px;">
+                <div style="flex: 0 0 200px; margin-right: 20px; overflow: hidden;">
+                    <img src="${event.image}" alt="${event.name}" style="width: 100%; height: auto; object-fit: cover; border-radius: 8px;">
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start; max-width: 100%;">
+                    <h2 style="font-size: 24px; font-weight: bold; margin: 0; flex: 1;">${event.name}</h2>
+                    <!-- Buy Tickets Button -->
+                    <button onclick="window.open('${event.link}', '_blank')" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px;">
+                        Buy Tickets
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-body" style="padding: 20px; text-align: left; max-width: 600px; margin: 0 auto; overflow: hidden;">
+              <div style="margin-top: 20px;">
+                  <strong>Distance:</strong> ${event.distance.toFixed(2)} km
+              </div>
+              <div style="margin-bottom: 15px;">
+                    <strong>Date:</strong> ${moment(event.eventDateTime).format('DD/MM/YYYY HH:mm')}
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    ${event.description ? event.longDescription : 'No description available'}
+                </div>
+              </div>
+          </div>
+      `;
+        
+        modalContent.innerHTML = content;
+        modal.style.display = "block";
+
+        // Pan and zoom to the event location
+        const zoomLevel = 14;  // Zoom in a bit more (adjustable)
+        const offset = [0, 0.022];
+        map.setView([event.latitude+offset[0], event.longitude+offset[1]], zoomLevel, { animate: true });
+
+        // Close modal on clicking the close button
+    closeBtn.onclick = function () {
+      modal.style.display = "none"; // Hide modal
+      modalContent.innerHTML = ''; // Clear previous content
+    };
+
+    // Close modal when clicking outside of the modal
+    window.onclick = function (event) {
+      if (event.target === modal) {
+        modal.style.display = "none"; // Hide modal
+        modalContent.innerHTML = ''; // Clear previous content
+      }
+    };
+        // Prevent cycling out of bounds
+        window.navigateEvents = function (newIndex) {
+            if (newIndex < 0) newIndex = events.length - 1;
+            if (newIndex >= events.length) newIndex = 0;
+            openEventPopup(events, newIndex);
+        };
+    }
+
+    // User location handler
+    document.getElementById('closestEventsButton').addEventListener('click', function () {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function (position) {
+      const userLat = position.coords.latitude;
+      const userLon = position.coords.longitude;
+
+      // Add a marker for the user's location
+      L.marker([userLat, userLon], {
+        icon: L.icon({
+          iconUrl: 'https://i.ibb.co/Rp9QfZQD/orange-stick-figure-hi.png',
+          iconSize: [25, 65],
+          iconAnchor: [13, 65],
+          popupAnchor: [0, -40],
+        }),
+      }).addTo(map).bindPopup("You are here").openPopup();
+
+      // Fetch all events
+      fetch('/events')
+        .then(r => r.json())
+        .then(events => {
+          // Apply filters before calculating distances
+          const filteredEvents = events.filter(event => {
+            const eventDate = new Date(event.eventDateTime);
+            let showEvent = true;
+
+            // Filter by name/location search term
+            const searchTerm = document.getElementById('filterName').value.toLowerCase().trim();
+            if (searchTerm) {
+              const nameMatch = event.name && event.name.toLowerCase().includes(searchTerm);
+              const locationMatch = event.locationDescription && event.locationDescription.toLowerCase().includes(searchTerm);
+              if (!nameMatch && !locationMatch) showEvent = false;
+            }
+
+            // Date filter
+            if (currentStartDate && currentEndDate && (eventDate < currentStartDate || eventDate > currentEndDate)) {
+              showEvent = false;
+            }
+
+            // Style filter
+            const selectedStyle = document.getElementById('filterStyle').value;
+            if (selectedStyle !== 'All' && (!event.style || event.style.toLowerCase() !== selectedStyle.toLowerCase())) {
+              showEvent = false;
+            }
+
+            return showEvent; // Return filtered events
+          });
+
+          // Calculate distance for each event and sort by distance
+          const sortedEvents = filteredEvents.map(event => ({
+            ...event,
+            distance: calculateDistance(userLat, userLon, event.latitude, event.longitude),
+          })).sort((a, b) => a.distance - b.distance);  // Sort by distance
+
+          // Open the popup for the closest event
+          openEventPopup(sortedEvents, 0);  // Open the first event's popup
+        });
+    }, function (error) {
+      alert("Error: " + error.message);
+    });
+  } else {
+    alert("Geolocation is not supported by your browser.");
+  }
+});
   </script>
 </body>
 

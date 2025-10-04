@@ -150,6 +150,7 @@ public class Scraper {
                 } else { continueGatherData=false;}
                 
                     if(continueGatherData){
+                        String link = styleSortedLink;
                         String style = v;
                         String image=null;
                         String locationDescription=null;
@@ -196,6 +197,7 @@ public class Scraper {
                         
                            
                         String shortDescription;
+                        if(description==null) description="";
                         if(description.length()<=100) {
                             shortDescription=description;
                         } else {
@@ -206,9 +208,11 @@ public class Scraper {
                             coordinates = coordinatesConverter.convertCoordinates(locationDescription);
                         } catch(Exception e) {System.err.println("Error: Unable to locate Event and could not get coordinates! \n" + e);}
                         
+                        boolean isInRomania = (coordinates[0] >= 42.5 && coordinates[0] <= 49.5 && coordinates[1] >= 19.5 && coordinates[1] <= 30.5);
+
                         System.out.println(name + "\n" + style + "\n" + image + "\n" + locationDescription + "\n" + coordinates[0] + "\n" + coordinates[1] + "\n" + localDateTime + "\n" + description + "\n" + "------------------------------------------------");
-                        if(shortDescription!=null && parsedDate!=null && image!=null &&  locationDescription!=null && name!= null)      //coordinates[0]!=0 && coordinates[1]!=0;
-                            EventAdd.add(shortDescription, parsedDate, image, coordinates[0], locationDescription, coordinates[1], name, style);
+                        if(shortDescription!=null && parsedDate!=null && image!=null &&  locationDescription!=null && name!= null  && isInRomania) 
+                                EventAdd.add(shortDescription, parsedDate, image, coordinates[0], locationDescription, coordinates[1], name, style, link, description);
                         else {
                             System.out.println("Error: Unable to add Event!");
                         }
@@ -221,4 +225,3 @@ public class Scraper {
         driver.quit();
     }
 }
-

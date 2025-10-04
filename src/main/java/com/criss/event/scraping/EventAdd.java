@@ -6,9 +6,9 @@ public class EventAdd {
 
 
     static boolean firstIteration = true;
-    public static int add(String description, java.sql.Timestamp eventDateTime, String image, double latitude, String locationDescription, double longitude, String name, String style) {
-        var sql = "INSERT INTO events(description, event_date_time, image, latitude, location_description, longitude, name, style) "
-                + "VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
+    public static int add(String description, java.sql.Timestamp eventDateTime, String image, double latitude, String locationDescription, double longitude, String name, String style, String link, String longDescription) {
+        var sql = "INSERT INTO events(description, event_date_time, image, latitude, location_description, longitude, name, style, link, long_description) "
+                + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (var conn =  DB.connect();
              var pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -28,7 +28,8 @@ public class EventAdd {
             pstmt.setDouble(6, longitude);
             pstmt.setString(7, name );
             pstmt.setString(8, style);
-
+            pstmt.setString(9, link);
+            pstmt.setString(10, longDescription);
 
 
             // execute the INSERT statement and get the inserted id

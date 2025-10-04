@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class Event {
 
     @Id // Marks this field as the primary key of the entity
-    @GeneratedValue(strategy = GenerationType.AUTO) // Auto-increments the ID, handled by Postgres
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String name; // Name of the event
@@ -29,4 +29,8 @@ public class Event {
     private LocalDateTime eventDateTime; // Combined date and time (including hour and minute)
 
     private String description; // Event description
+    @Column(columnDefinition = "TEXT")
+    private String longDescription; //Event long description
+
+    private String link;    //Event link
 }
