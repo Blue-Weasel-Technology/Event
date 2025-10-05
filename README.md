@@ -1,21 +1,41 @@
-Setup:
+# Description
+---
+**NearMe** is a Spring Boot web application that collects data and displays upcoming events in Romania on an interactive map.  
+The platform uses web scraping, filtering, and geolocation to help users discover nearby events.
 
-Lombok:
-- Lombok is included to make the code cleaner.
-- It automatically generates Getters, Setters, Constructors, Hashcode, and Equals methods during runtime.
+## Features
+---
+- **Event scraping:** Automatically collects event data from external sources using Selenium.  
+- **Database:** Stores events in a PostgreSQL database.  
+- **Interactive map:** Displays events on the map with custom markers and popups.  
+- **Filtering:** Filter by name, location, style, and date range.  
+- **Geolocation:** Finds the nearest events based on the user’s current location.  
+- **Modern interface:** Responsive design with filters and detailed modals.
 
-Database Setup:
-- PostgreSQL is used, and the events table is created automatically. (Port 5432!!)
-- Events are added from iabilete, a site the scraper gathers data from and sends it to the database.
-- The scraper uses Nominatim to transform location descriptions into geographic coordinates (latitude and longitude), which are then displayed on the map.
+## Technologies Used
+---
+- Java 21, Spring Boot  
+- Selenium WebDriver  
+- PostgreSQL  
+- Leaflet.js, jQuery, Moment.js  
+- Lombok  
+- Maven
 
-Database Connection:
-In your application.properties, fill in your Postgres creds like this:
-- spring.datasource.url=jdbc:postgresql://localhost:5432/your_database_name
-- spring.datasource.username=your_username
-- spring.datasource.password=your_password
+# How the Application is Organized
+---
+The application has a main page where the user can access an interactive map and various options to filter events happening nearby.
 
-Additional Details:
-- The scraper and database integration has been added so that scraped events are automatically saved to the database.
-- Locations from scraped events are transformed into geographic coordinates and shown on the map.
-- We still need to improve the scraper because it currently ignores some events from the source list.
+![Main Page](image.png)
+
+# Technical Details
+---
+- **Backend:** Java (Spring Boot)  
+- **Frontend:** HTML, JavaScript & CSS  
+- **Hosting:** ...
+
+# Installation
+---
+- Clone the repository  
+- Run the server:  
+  ```bash
+  mvn spring-boot:run
