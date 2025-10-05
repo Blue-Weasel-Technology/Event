@@ -66,7 +66,7 @@ public class Scraper {
             }
         }
 
-        styles.forEach((k, v) -> {
+        new HashMap<>(styles).forEach((k, v) -> {
             List<WebElement> titleDivs = new ArrayList<>();
             scrapeBot.search(k); // opens style-specific page
             List<WebElement> styleSortedAnchors = new ArrayList<>();
