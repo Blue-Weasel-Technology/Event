@@ -26,13 +26,14 @@ The platform uses web scraping, filtering, and geolocation to help users discove
 The application has a main page where the user can access an interactive map and various options to filter events happening nearby.
 
 <img width="1919" height="982" alt="image" src="https://github.com/user-attachments/assets/356d6da3-da02-4ca7-9094-1b5397eb209b" />
+<img width="1851" height="906" alt="image" src="https://github.com/user-attachments/assets/923e2911-9bc8-463c-ab64-ae4ded4c3598" />
+
 
 
 # Technical Details
 
 - **Backend:** Java (Spring Boot)  
 - **Frontend:** HTML, JavaScript & CSS  
-- **Hosting:** ...
 
 # Installation
 
